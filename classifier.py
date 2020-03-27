@@ -34,10 +34,10 @@ def read_label(filename):
     data = data[1:]
     return data
 
-train_data = read_data('./data/nsmc-master/ratings_train.txt')
-test_data = read_data('./data/nsmc-master/ratings_test.txt')
-train_label = read_label('./data/nsmc-master/ratings_train.txt')
-test_label = read_label('./data/nsmc-master/ratings_test.txt')
+train_data = read_data('./ratings_train.txt')
+test_data = read_data('./ratings_test.txt')
+train_label = read_label('./ratings_train.txt')
+test_label = read_label('./ratings_test.txt')
 
 word_extractor = WordExtractor(
     min_frequency=100,
