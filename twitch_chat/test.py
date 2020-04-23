@@ -1,0 +1,3 @@
+import soynlp
+
+print("Hello")
