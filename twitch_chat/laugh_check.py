@@ -1,5 +1,4 @@
 '''
-컴퓨터정보통신공학전공 175704 박지연
 데이터를 분석하던 중 ㅋ이 굉장히 많이 나오는 것을 확인하여 ㅋ에 대해 분석해보고자 함
 처리는 laugh_trans라는 다른 파일을 만들기로 했다.
 '''
@@ -51,14 +50,11 @@ def laugh_check(raw_chat):
     avg_prob = 0
     list_single = []
     for chat in raw_chat:
-        if "ㅋ" in chat:
+        laugh_len = chat.count("ㅋ")
+        if laugh_len:
             sentence_cnt += 1 #ㅋ이 들어간 문장의 개수
-            single_cnt = 0
-            for single_chat in chat:
-                if single_chat == "ㅋ":
-                    single_cnt += 1
-            list_single.append(single_cnt) #한 문장 내에서의 ㅋ의 개수
-            avg_prob += (single_cnt/len(chat))
+            list_single.append(laugh_len) #한 문장 내에서의 ㅋ의 개수
+            avg_prob += (laugh_len/len(chat))
     np_single = np.array(list_single)
     result_path, file_num = make_dir(file_name)
     f = open(result_path+"/"+file_num+".txt",mode="w")
