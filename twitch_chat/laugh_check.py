@@ -1,6 +1,6 @@
 '''
 컴퓨터정보통신공학전공 175704 박지연
-데이터를 분석하던 중 ㅋ이 굉장히 많이 나오는 것을 확인하여 ㅋ에 대해 분석하고 처리해보고자 함
+데이터를 분석하던 중 ㅋ이 굉장히 많이 나오는 것을 확인하여 ㅋ에 대해 분석해보고자 함
 처리는 laugh_trans라는 다른 파일을 만들기로 했다.
 '''
 
@@ -14,6 +14,10 @@ from soynlp.word import WordExtractor
 
 file_name = './data/highlight/79매치_2경기/하이라이트/399807785_10.csv'
 
+'''
+make_dir>
+Make directories which the datas are saved with using the data's file name.
+'''
 def make_dir(file_name):
     temp = file_name.split('/')
     temp_num = temp[5].split("_")[1]
