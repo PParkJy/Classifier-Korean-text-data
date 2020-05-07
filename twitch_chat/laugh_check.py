@@ -12,7 +12,7 @@ from collections import Counter
 from soynlp.tokenizer import LTokenizer
 from soynlp.word import WordExtractor
 
-file_name = './data/highlight/79매치_2경기/하이라이트/399807785_10.csv'
+file_name = './data/highlight/79매치_1경기/하이라이트/399807785_2.csv'
 
 '''
 make_dir>
@@ -51,14 +51,11 @@ def laugh_check(raw_chat):
     avg_prob = 0
     list_single = []
     for chat in raw_chat:
-        if "ㅋ" in chat:
+        laugh_len = chat.count("ㅋ")
+        if laugh_len:
             sentence_cnt += 1 #ㅋ이 들어간 문장의 개수
-            single_cnt = 0
-            for single_chat in chat:
-                if single_chat == "ㅋ":
-                    single_cnt += 1
-            list_single.append(single_cnt) #한 문장 내에서의 ㅋ의 개수
-            avg_prob += (single_cnt/len(chat))
+            list_single.append(laugh_len) #한 문장 내에서의 ㅋ의 개수
+            avg_prob += (laugh_len/len(chat))
     np_single = np.array(list_single)
     result_path, file_num = make_dir(file_name)
     f = open(result_path+"/"+file_num+".txt",mode="w")
@@ -92,11 +89,27 @@ word_extractor = WordExtractor(
     min_right_branching_entropy=0.0
 ) #여기서는 Cohesion Score 사용
 
-'''
 word_extractor.train(raw_chat)
 words = word_extractor.extract()
+
+'''
 print("word extraction 길이: ",len(words), " \n결과: ")
 print(words)
 #words_score = {word : score.cohesion_forward for word, score in words.items()}
 #tokenizer = LTokenizer(scores=words_score)
 '''
+
+import math
+
+def word_score(score):
+    return (score.cohesion_forward * math.exp(score.right_branching_entropy))
+
+print('단어   (빈도수, cohesion, branching entropy)\n')
+for word, score in sorted(words.items(), key=lambda x:word_score(x[1]), reverse=True)[:10]:
+    print('%s     (%d, %.3f, %.3f)' % (
+            word,
+            score.leftside_frequency,
+            score.cohesion_forward,
+            score.right_branching_entropy
+            )
+         )

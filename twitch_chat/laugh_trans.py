@@ -13,53 +13,37 @@ from collections import Counter
 from soynlp.tokenizer import LTokenizer
 from soynlp.word import WordExtractor
 
-file_name = './data/highlight/79매치_2경기/하이라이트/399807785_10.csv'
-
-'''
-def make_dir(file_name):
-    temp = file_name.split('/')
-    temp_num = temp[5].split("_")[1]
-    file_num = temp_num.split(".")[0]
-    temp[5] = temp[5].split("_")[0]
-    result_path = "./data/result/" + temp[2] + "/" + temp[3] + "/" + temp[5]
-    try:
-        if not os.path.exists(result_path):
-            os.makedirs(result_path)
-    except OSError:
-        print("폴더 생성에 실패했습니다. ")
-    return result_path, file_num
-'''
+file_name = './data/highlight/79매치_1경기/하이라이트/399807785_'
+single_char = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ", "ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ",
+               "ㅣ", "ㅔ", "ㅐ", "ㅏ", "ㅜ", "ㅗ", "ㅓ", "ㅡ", "ㅟ", "ㅚ", "ㅑ", "ㅕ", "ㅛ", "ㅠ", "ㅒ", "ㅖ", "ㅘ", "ㅝ", "ㅙ", "ㅞ", "ㅢ"]
 
 def read_data(filename):
     raw_time = []
     raw_chat = []
-    f = open(filename, 'r', encoding='euc-kr')
-    raw = csv.reader(f)
-    for line in raw:
-        raw_time.append(line[1])
-        raw_chat.append(line[2])
-    f.close()
+    for i in range (1,11):
+        fname = filename + str(i) + ".csv"
+        f = open(fname, 'r', encoding='euc-kr')
+        raw = csv.reader(f)
+        for line in raw:
+            raw_time.append(line[1])
+            raw_chat.append(line[2])
+        f.close()
     return raw_time, raw_chat
 
 def laugh_trans(raw_chat):
-    sentence_cnt = 0 #ㅋ이 들어간 문장의 수
     trans_chat = []
+    #이걸 먼저 ㅋ 단위로 분리하고....
+    #근데 생각을 해봐라 ㅋ이 아니라 ㄱ이 들어갈 수도 있고 ㅁ이 들어갈 수도 있으니까 걍 모든 낱글자에 대해 처리를 해야하지 않냐?
+    #-> 일단 낱글자에 대한 빈도수를 확인해보자
     for chat in raw_chat:
-        if "ㅋ" in chat:
-            sentence_cnt += 1 #ㅋ이 들어간 문장의 개수
-            single_cnt = 0
-            for single_chat in chat:
-                if single_chat == "ㅋ":
-                    single_cnt += 1
-            if single_cnt < 3:
-                #ㅋ을 소거해야함
-                chat = chat.replace("ㅋ","")
-            else:
-                #ㅋ의 길이를 3으로 맞춰야함
-                laugh_len = chat.count("ㅋ")
-                while laugh_len > 3:
-                    chat = chat.replace("ㅋ","",1)
-                    laugh_len = chat.count("ㅋ")
+        laugh_len = chat.count("ㅋ")
+        if laugh_len: #ㅋ이 있다면
+            #ㅋ이 3개 미만이면 소거, 3개 이상이면 3개로 통일
+            chat = chat.replace("ㅋ","",laugh_len-3)
+        laugh_len = chat.count("ㅋ")
+        if laugh_len > 3:
+            print(chat)
+
         trans_chat.append(chat)
     return trans_chat
 
@@ -67,51 +51,30 @@ def laugh_check(trans_chat):
     sentence_cnt = 0 #ㅋ이 들어간 문장의 수
     avg_prob = 0
     list_single = []
+
     for chat in trans_chat:
-        if "ㅋ" in chat:
+        laugh_len = chat.count("ㅋ")
+        if laugh_len:
             sentence_cnt += 1 #ㅋ이 들어간 문장의 개수
-            single_cnt = 0
-            for single_chat in chat:
-                if single_chat == "ㅋ":
-                    single_cnt += 1
-            list_single.append(single_cnt) #한 문장 내에서의 ㅋ의 개수
-            avg_prob += (single_cnt/len(chat))
+            list_single.append(laugh_len) #한 문장 내에서의 ㅋ의 개수
+            avg_prob += (laugh_len/len(chat))
+
     np_single = np.array(list_single)
-    #result_path, file_num = make_dir(file_name)
-    #f = open(result_path+"/"+file_num+".txt",mode="w")
 
     print("전체 chat 데이터 개수: " + str(len(trans_chat)) + "\n")
     print("전체 chat 중 ㅋ이 들어간 chat의 평균 비율: " + str(round(sentence_cnt / len(trans_chat) * 100, 3)) + "%\n")
     print("한 chat 내에서 ㅋ이 차지하는 평균 비율: " + str(round((avg_prob / sentence_cnt) * 100, 3)) + '%\n')
     print("ㅋ이 들어간 chat 중 ㅋ의 최소 길이: " + str(np.min(np_single)) + '\n')
     print("ㅋ이 들어간 chat 중 ㅋ의 최대 길이: " + str(np.max(np_single)) + '\n')
-    print("ㅋ이 들어간 chat 중 ㅋ의 길이의 분산: " + str(round(np.var(np_single), 3)) + '\n') #분산 크면 데이터가 흩어져있죵
-    #print("ㅋ이 들어간 문장 중 ㅋ의 길이의 표준편차: ", np.std(np_single))
-    print("ㅋ이 들어간 chat 중 ㅋ의 평균 길이: " + str(round(np.mean(np_single),3)) + '\n') #얘가 신뢰할 수 없는 정보인게 히스토그램, 분산, 표준편차 확인해보면 값이 몰려 있음 -> 중앙값도 한 번 봐보자
-    print("ㅋ이 들어간 chat 중 ㅋ의 길이의 중앙값: " + str(np.median(np_single)) + '\n') #얘도 신뢰할 수 없는 정보인게 자료분포가 중심지향적이지 않음 -> 최빈값도 고려
+    print("ㅋ이 들어간 chat 중 ㅋ의 길이의 분산: " + str(round(np.var(np_single), 3)) + '\n')
+    print("ㅋ이 들어간 chat 중 ㅋ의 평균 길이: " + str(round(np.mean(np_single),3)) + '\n')
+    print("ㅋ이 들어간 chat 중 ㅋ의 길이의 중앙값: " + str(np.median(np_single)) + '\n')
     print("ㅋ이 들어간 chat 중 ㅋ의 길이의 최빈값(상위3개): " + str(Counter(np_single).most_common()[:3])+'\n') #상위 3개 확인
-    n, bins, patches = plt.hist(np_single, bins=sentence_cnt)  # ㅋ이 들어간 문장 중 ㅋ의 평균 출현 횟수에 대한 히스토그램
-    '''
-    f.write("전체 chat 데이터 개수: " + str(len(raw_chat)) + "\n")
-    f.write("전체 chat 중 ㅋ이 들어간 chat의 평균 비율: " + str(round(sentence_cnt / len(raw_chat) * 100, 3)) + "%\n")
-    f.write("한 chat 내에서 ㅋ이 차지하는 평균 비율: " + str(round((avg_prob / sentence_cnt) * 100, 3)) + '%\n')
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 최소 길이: " + str(np.min(np_single)) + '\n')
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 최대 길이: " + str(np.max(np_single)) + '\n')
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 길이의 분산: " + str(round(np.var(np_single), 3)) + '\n') #분산 크면 데이터가 흩어져있죵
-    #print("ㅋ이 들어간 문장 중 ㅋ의 길이의 표준편차: ", np.std(np_single))
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 평균 길이: " + str(round(np.mean(np_single),3)) + '\n') #얘가 신뢰할 수 없는 정보인게 히스토그램, 분산, 표준편차 확인해보면 값이 몰려 있음 -> 중앙값도 한 번 봐보자
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 길이의 중앙값: " + str(np.median(np_single)) + '\n') #얘도 신뢰할 수 없는 정보인게 자료분포가 중심지향적이지 않음 -> 최빈값도 고려
-    f.write("ㅋ이 들어간 chat 중 ㅋ의 길이의 최빈값(상위3개): " + str(Counter(np_single).most_common()[:3])+'\n') #상위 3개 확인
-    n, bins, patches = plt.hist(np_single, bins=sentence_cnt)  # ㅋ이 들어간 문장 중 ㅋ의 평균 출현 횟수에 대한 히스토그램
-    '''
-    #plt.savefig(result_path+"/"+file_num+".png")
-    #f.close()
-    plt.show()
-
 
 raw_time, raw_chat = read_data(file_name)
 trans_chat = laugh_trans(raw_chat)
 laugh_check(trans_chat)
+print(trans_chat)
 
 word_extractor = WordExtractor(
     min_frequency=20,
@@ -119,9 +82,24 @@ word_extractor = WordExtractor(
     min_right_branching_entropy=0.0
 ) #여기서는 Cohesion Score 사용
 
-word_extractor.train(raw_chat)
+word_extractor.train(trans_chat)
 words = word_extractor.extract()
-print("word extraction 길이: ",len(words), " \n결과: ")
-print(words)
+#print("word extraction 길이: ",len(words), " \n결과: ")
+#print(words)
 #words_score = {word : score.cohesion_forward for word, score in words.items()}
 #tokenizer = LTokenizer(scores=words_score)
+
+import math
+
+def word_score(score):
+    return (score.cohesion_forward * math.exp(score.right_branching_entropy))
+
+print('단어   (빈도수, cohesion, branching entropy)\n')
+for word, score in sorted(words.items(), key=lambda x:word_score(x[1]), reverse=True)[:10]:
+    print('%s     (%d, %.3f, %.3f)' % (
+            word,
+            score.leftside_frequency,
+            score.cohesion_forward,
+            score.right_branching_entropy
+            )
+         )
