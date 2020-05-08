@@ -1,3 +1,0 @@
-import soynlp
-
-print("Hello")
