@@ -1,5 +1,8 @@
 '''
+<<<<<<< HEAD
 컴퓨터정보통신공학전공 175704 박지연
+=======
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
 ㅋ의 길이 = 3을 기준으로 ㅋ의 길이를 통일하고자 함
 길이 3 미만일 경우 ㅋ 시퀀스 소거
 길이 3 이상일 경우 ㅋ 시퀀스의 길이 3으로 통일
@@ -13,9 +16,13 @@ from collections import Counter
 from soynlp.tokenizer import LTokenizer
 from soynlp.word import WordExtractor
 
+<<<<<<< HEAD
 file_name = './data/highlight/79매치_1경기/하이라이트/399807785_'
 single_char = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ", "ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ",
                "ㅣ", "ㅔ", "ㅐ", "ㅏ", "ㅜ", "ㅗ", "ㅓ", "ㅡ", "ㅟ", "ㅚ", "ㅑ", "ㅕ", "ㅛ", "ㅠ", "ㅒ", "ㅖ", "ㅘ", "ㅝ", "ㅙ", "ㅞ", "ㅢ"]
+=======
+file_name = './data/highlight/79매치_2경기/하이라이트/399807785_10.csv'
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
 
 def read_data(filename):
     raw_time = []
@@ -32,6 +39,7 @@ def read_data(filename):
 
 def laugh_trans(raw_chat):
     trans_chat = []
+<<<<<<< HEAD
     #이걸 먼저 ㅋ 단위로 분리하고....
     #근데 생각을 해봐라 ㅋ이 아니라 ㄱ이 들어갈 수도 있고 ㅁ이 들어갈 수도 있으니까 걍 모든 낱글자에 대해 처리를 해야하지 않냐?
     #-> 일단 낱글자에 대한 빈도수를 확인해보자
@@ -44,6 +52,13 @@ def laugh_trans(raw_chat):
         if laugh_len > 3:
             print(chat)
 
+=======
+    for chat in raw_chat:
+        laugh_len = chat.count("ㅋ")
+        if laugh_len:
+            #ㅋ이 3개 미만이면 소거, 3개 이상이면 3개로 통일
+            chat = chat.replace("ㅋ","",laugh_len-3)
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
         trans_chat.append(chat)
     return trans_chat
 
@@ -74,7 +89,10 @@ def laugh_check(trans_chat):
 raw_time, raw_chat = read_data(file_name)
 trans_chat = laugh_trans(raw_chat)
 laugh_check(trans_chat)
+<<<<<<< HEAD
 print(trans_chat)
+=======
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
 
 word_extractor = WordExtractor(
     min_frequency=20,
@@ -82,6 +100,7 @@ word_extractor = WordExtractor(
     min_right_branching_entropy=0.0
 ) #여기서는 Cohesion Score 사용
 
+<<<<<<< HEAD
 word_extractor.train(trans_chat)
 words = word_extractor.extract()
 #print("word extraction 길이: ",len(words), " \n결과: ")
@@ -103,3 +122,11 @@ for word, score in sorted(words.items(), key=lambda x:word_score(x[1]), reverse=
             score.right_branching_entropy
             )
          )
+=======
+word_extractor.train(raw_chat)
+words = word_extractor.extract()
+print("word extraction 길이: ",len(words), " \n결과: ")
+print(words)
+#words_score = {word : score.cohesion_forward for word, score in words.items()}
+#tokenizer = LTokenizer(scores=words_score)
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25

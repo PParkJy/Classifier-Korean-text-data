@@ -1,5 +1,8 @@
 '''
+<<<<<<< HEAD
 컴퓨터정보통신공학전공 175704 박지연
+=======
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
 데이터를 분석하던 중 ㅋ이 굉장히 많이 나오는 것을 확인하여 ㅋ에 대해 분석해보고자 함
 처리는 laugh_trans라는 다른 파일을 만들기로 했다.
 '''
@@ -98,6 +101,7 @@ print(words)
 #words_score = {word : score.cohesion_forward for word, score in words.items()}
 #tokenizer = LTokenizer(scores=words_score)
 '''
+<<<<<<< HEAD
 
 import math
 
@@ -113,3 +117,5 @@ for word, score in sorted(words.items(), key=lambda x:word_score(x[1]), reverse=
             score.right_branching_entropy
             )
          )
+=======
+>>>>>>> 297c8b250bee0ab5b5d00d9b0c429d73325baa25
