@@ -9,12 +9,12 @@ import math
 import csv
 from soynlp.word import WordExtractor
 
-file_name = './data/highlight/79매치_1경기/399807785_'
+file_name = './data/non_highlight/79match1/399807785_'
 
 def read_data(filename):
     raw_time = []
     raw_chat = []
-    for i in range (1,14):
+    for i in range (1,28):
         fname = filename + str(i) + ".csv"
         f = open(fname, 'r', encoding='euc-kr')
         raw = csv.reader(f)
@@ -23,6 +23,7 @@ def read_data(filename):
             raw_chat.append(line[2])
         f.close()
     return raw_time, raw_chat
+
 
 def laugh_trans(raw_chat):
     trans_raw = []
@@ -77,5 +78,3 @@ for word, score in sorted(words.items(), key=lambda x:word_score(x[1]), reverse=
             score.right_branching_entropy
             )
          )
-
-#brancing entropy를 더 많이 신뢰해야 할 것 같은데?????????????????
