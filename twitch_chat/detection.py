@@ -1,191 +1,94 @@
-import os, re, glob
-import cv2
-import numpy as np
+import csv
 from keras.models import model_from_json
-import smtplib
 import json
-from sklearn.metrics import classification_report, confusion_matrix
-from keras.metrics import categorical_accuracy
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-'''
-jsonPath = "../../Results/experiment2/base/_json/4_base.json"
-weightsPath = "../../Results/experiment2/base/_h5/4_base.h5"
+from soynlp.tokenizer import LTokenizer
+from soynlp.word import WordExtractor
+import nltk
+import numpy as np
 
-categories = ["bacteria", "healthy", "lateblight", "targetspot", "yellowleafcurl"]
+jsonPath = "middle.json"
+weightsPath = "middle.h5"
 
 with open(jsonPath,'r') as f:
     model_json = json.load(f)
 
 model = model_from_json(model_json)
 model.load_weights(weightsPath)
-print("loaded model from disk")
+print("모델을 불러옵니다.")
 
-def Dataization(img_path):
-    image_w = 32
-    image_h = 32
-    img=cv2.imread(img_path)
-    return (img/256)
+def read_data(f_path):
+    raw_time = []
+    raw_chat = []
+    f = open(f_path,"r",encoding='euc-kr')
+    raw = csv.reader(f)
+    for line in raw:
+        raw_time.append(line[1])
+        raw_chat.append(line[2])
+    return raw_time, raw_chat
 
-src=[]
-name=[]
-test_X=[]
-test_Y=[]
-image_dir= "../../Dataset/DCGAN_4000/bacteria/"
+word_extractor = WordExtractor(
+    min_frequency=100,
+    min_cohesion_forward=0.05,
+    min_right_branching_entropy=0.0
+)
 
+def laugh_trans(raw_chat):
+    trans_raw = []
+    for chat in raw_chat:
+        laugh_len = chat.count("ㅋ")
+        if laugh_len: #ㅋ이 있다면
+            #ㅋ이 3개 미만이면 소거, 3개 이상이면 3개로 통일
+            idx = 0
+            laugh_cnt = 0
+            chat2 = list(chat)
+            chat = chat + "_"
+            for i in chat:
+                if i == "ㅋ":
+                    laugh_cnt += 1
+                else:
+                    if laugh_cnt > 0 and laugh_cnt < 3:
+                        for j in range(idx - laugh_cnt, idx):
+                            chat2[j] = "*"
+                    else:
+                        for j in range(idx - laugh_cnt, idx-3):
+                            chat2[j] = "*"
+                    laugh_cnt = 0
+                idx += 1
+            chat2 = ''.join(list(filter(("*").__ne__, chat2)))
+            laugh_len = chat2.count("ㅋ")
+            chat2 = chat2.replace("ㅋ", "", laugh_len - 3)
+            trans_raw.append(chat2)
+        else:
+            trans_raw.append(chat)
+    return trans_raw
 
-label = [1,0,0,0,0]
-image_dir = "../../Dataset/DCGAN_4000/bacteria/"
-for top_train, dir_train, f_train in os.walk(image_dir):
-    for filename in f_train:
-        img = cv2.imread(image_dir + filename)
-        test_X.append(img / 256)
-        test_Y.append(label)
+raw_time, raw_chat = read_data("399807785.csv")
+raw_chat = laugh_trans(raw_chat)
 
-test_X = np.array(test_X)
-test_Y = np.array(test_Y)
-
-test_predictions = model.predict(test_X)
-test_predictions = np.round(test_predictions)
-accuracy = accuracy_score(test_Y, test_predictions)
-confmat = confusion_matrix(test_Y.argmax(axis=1), test_predictions.argmax(axis=1))  # argmax 미사용시 에러
-model.summary()
-
-print(confmat)
-print(classification_report(test_Y.argmax(axis=1), test_predictions.argmax(axis=1),
-                            target_names=["bacteria", "healthy", "lateblight", "targetspot", "yellowleafcurl"]))
-f = open('../../Results/experiment2/DCGAN_4000/detected.txt', 'a')
-f.write('------------------' + str(i) + 'DCGAN result------------------\n')
-f.write(str(confmat) + '\n')
-f.write(str(classification_report(test_Y.argmax(axis=1), test_predictions.argmax(axis=1),
-                                  target_names=["bacteria", "healthy", "lateblight", "targetspot",
-                                                "yellowleafcurl"]) + '\n'))
-for i in range(len(categories)):
-    axis_sum = 0
-    for j in range(len(categories)):
-        axis_sum = axis_sum + confmat[i, j]
-    answer = confmat[i, i] / axis_sum
-    answer = str(answer)
-    print(categories[i] + " accuracy : ", end='')
-    print(answer)
-    f.write(str(categories[i] + " accuracy : " + answer + '\n'))
-f.close()
-
-predict = model.predict_classes(test)
-
-cnt_bacteria = 0
-cnt_healthy = 0
-cnt_lateblight = 0
-cnt_targetspot = 0
-cnt_yellowleafcurl = 0
-
-
-for i in range(len(test)):
-    #print(name[i] + " : , predict: "+str(categories[predict[i]]))
-    if str(categories[predict[i]]) == 'healthy':
-        cnt_healthy += 1
-    elif str(categories[predict[i]]) == 'bacteria':
-        cnt_bacteria += 1
-
-#f = open('.txt','w')
-print("test: ",len(test))
-print("Healthy: ",cnt_healthy)
-print(disease, cnt_bacteria)
-print("accuracy: ",len(test)/cnt_bacteria)
-
-#f.write()
-f.close()
-
-'''
-import os, re, glob
-import cv2
-import numpy as np
-from keras.models import model_from_json
-import smtplib
-import json
-from sklearn.metrics import classification_report, confusion_matrix
-
-disease = input('disease: ')
-jsonPath = "../../Results/experiment2/base/_json/4_base.json"
-weightsPath = "../../Results/experiment2/base/_h5/4_base.h5"
-
-categories = ["bacteria", "healthy", "lateblight", "targetspot", "yellowleafcurl"]
-
-with open(jsonPath,'r') as f:
-    model_json = json.load(f)
-
-model = model_from_json(model_json)
-model.load_weights(weightsPath)
-print("loaded model from disk")
-
-def Dataization(img_path):
-    image_w = 32
-    image_h = 32
-    img=cv2.imread(img_path)
-    img = cv2.resize(img, None, fx=image_w / img.shape[1], fy=image_h / img.shape[0])
-    return (img/256)
-
-src=[]
-name=[]
-test=[]
-
-image_dir = "../../Dataset/GAU_DCGAN/"+disease+"_1/" #"../../Dataset/DCGAN_4000/"+disease+"/"
-
-for file in os.listdir(image_dir):
-    if (file.find('.png') is not -1):
-        src.append(image_dir+file)
-        name.append(file)
-        test.append(Dataization(image_dir+file))
-
-test = np.array(test)
-predict = model.predict_classes(test)
-
-cnt_bacteria = 0
-cnt_healthy = 0
-cnt_lateblight = 0
-cnt_targetspot = 0
-cnt_yellowleafcurl = 0
-
-for i in range(len(test)):
-    print(name[i] + " : , predict: "+str(categories[predict[i]]))
-    if str(categories[predict[i]]) == 'healthy':
-        cnt_healthy += 1
-    elif str(categories[predict[i]]) == 'bacteria':
-        cnt_bacteria += 1
-    elif str(categories[predict[i]]) == 'lateblight':
-        cnt_lateblight += 1
-    elif str(categories[predict[i]]) == 'targetspot':
-        cnt_targetspot += 1
-    elif str(categories[predict[i]]) == 'yellowleafcurl':
-        cnt_yellowleafcurl += 1
-
-f = open('../../Results/experiment2/256_DCGAN/_result/'+disease+'_GAN_check.txt','a')
+word_extractor.train(raw_chat)
+test_words = word_extractor.extract()
+test_score = {word:score.cohesion_forward for word, score in test_words.items()}
+tokenizer = LTokenizer(scores=test_score)
+test_list = []
 cnt = 0
-if disease == "bacteria":
-    cnt = cnt_bacteria
-elif disease == "lateblight":
-    cnt = cnt_lateblight
-elif disease == "targetspot":
-    cnt = cnt_targetspot
-elif disease == "yellowleafcurl":
-    cnt = cnt_yellowleafcurl
-print("test: ",len(test))
-print("Healthy: ",cnt_healthy)
-print("bacteria: ", cnt_bacteria)
-print("lateblight: ", cnt_lateblight)
-print("targetspot: ", cnt_targetspot)
-print("yellowleafcurl: ", cnt_yellowleafcurl)
-print(disease+" precision: ",cnt/cnt)
-print(disease+" recall: ",cnt/len(test))
-print(disease+" f1-score: ",2*((cnt/cnt) * (cnt/len(test)))/((cnt/cnt)+(cnt/len(test))))
-print(disease+" accuracy: ",cnt/len(test))
-f.write("test: " + str(len(test))+'\n')
-f.write("Healthy: "+str(cnt_healthy)+'\n')
-f.write("bacteria: "+ str(cnt_bacteria)+'\n')
-f.write("lateblight: "+ str(cnt_lateblight)+'\n')
-f.write("targetspot: "+ str(cnt_targetspot)+'\n')
-f.write("yellowleafcurl: "+ str(cnt_yellowleafcurl)+'\n')
-f.write(disease+" precision: "+str(cnt/cnt)+'\n')
-f.write(disease+" recall: "+str(cnt/len(test))+'\n')
-f.write(disease+" f1-score: "+str(2*((cnt/cnt) * (cnt/len(test)))/((cnt/cnt)+(cnt/len(test))))+'\n')
-f.write(disease+" accuracy: "+str(cnt/len(test))+'\n\n')
-f.close()
+for sent in raw_chat:
+    test_list.append([tokenizer.tokenize(sent)])
+    cnt += 1
+
+test_tokens = [token for data in test_list for token in data[0]]
+
+test_text = nltk.Text(test_tokens)
+selected_tokens= [t[0] for t in test_text.vocab().most_common(500)]
+def term_frequency(data):
+    return [data.count(word) for word in selected_tokens]
+test_x = [term_frequency(d) for d in test_list]
+X_test = np.asarray(test_x).astype('float32')
+
+cnt = 0
+print(len(model.predict_classes(X_test))) #13374
+for i in range(len(X_test)):
+    if model.predict_classes(X_test)[i] == [0]:
+        #print(raw_time[i],"   , highlight")
+        cnt += 1
+        print(cnt)
+
