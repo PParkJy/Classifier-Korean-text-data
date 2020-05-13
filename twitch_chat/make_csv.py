@@ -10,7 +10,7 @@ import glob
 4. 전체 데이터 중 3은 테스트, 7은 학습으로 써주자
 '''
 
-file_name = './data/highlight/79match2/'
+file_name = './data/highlight/79match1/'
 
 def read_data():
     raw_time = []
@@ -54,7 +54,7 @@ def laugh_trans(raw_chat):
             trans_raw.append(chat)
     return trans_raw
 
-raw_time, raw_chat = read_data(file_name)
+raw_time, raw_chat = read_data()
 pre_chat = laugh_trans(raw_chat)
 save_data = []
 
@@ -64,7 +64,7 @@ if file_name.split('/')[2] == "highlight":
 for i in range(len(raw_time)):
     save_data.append([raw_time[i], pre_chat[i], label])
 
-save_csv = open('preprocessed/'+ str(file_name.split('/')[2]) + "/" + str(file_name.split('/')[3])+".csv","w", encoding='utf-8', newline="")
+save_csv = open('preprocessed/'+ str(file_name.split('/')[3]) + "_" + str(file_name.split('/')[2])+".csv","w", encoding='utf-8', newline="")
 wr = csv.writer(save_csv)
 for i in save_data:
     wr.writerow(i)
